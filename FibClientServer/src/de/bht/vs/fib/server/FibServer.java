@@ -61,10 +61,14 @@ public class FibServer {
 				stop();
 				break;
 			}
-			int input = Integer.valueOf(inputline);
-			int fibo = fib(input);
-			System.out.println("Sending answer: " + fibo);
-			out.println(fibo);
+            try {
+                int input = Integer.valueOf(inputline);
+                int fibo = fib(input);
+                System.out.println("Sending answer: " + fibo);
+                out.println(fibo);
+            } catch (NumberFormatException e) {
+                out.println("Illegal input format. Please try again.");
+            }
         }
     }
 
