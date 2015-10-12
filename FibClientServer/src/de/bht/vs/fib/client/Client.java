@@ -19,7 +19,7 @@ public class Client {
 				System.out.println("Sending request: " + inputString);
 				out.println(inputString);
 			} catch (NumberFormatException e) {
-				out.println("Illegal input format. Please try again.");
+				System.out.println("Illegal input format. Please try again.");
 			}
 			if (input.equals("exit")) {
 				break;
