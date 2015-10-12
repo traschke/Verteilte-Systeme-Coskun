@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -23,7 +24,7 @@ public class FibServer {
 	}
 	
 	public void run() throws IOException {
-		System.out.println("Waiting for clients on port " + this.serverSocket.getLocalPort());
+		System.out.println("Waiting for clients on " + Inet4Address.getLocalHost().getHostAddress() + ":" + this.serverSocket.getLocalPort());
 		this.clientSocket = this.serverSocket.accept();
 		System.out.println("Client " + clientSocket.getInetAddress().toString() + " connected!");
 		this.out = new PrintWriter(this.clientSocket.getOutputStream(), true);
