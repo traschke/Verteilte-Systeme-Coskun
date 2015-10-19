@@ -7,8 +7,18 @@ import java.io.PrintWriter;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FibServer {
+
+    private final static Logger LOGGER = Logger.getLogger(FibServer.class.getName());
+
+    /**
+     * This static variable holds the standard port.
+     */
+    private static int STANDARD_PORT = 5678;
+
     /**
      * This private variable holds the ServerSocket instance.
      */
@@ -32,15 +42,23 @@ public class FibServer {
     /**
      * Default Constructor.
      *
-     * @param port
+     * @param port The port the Server should run on.
      * @throws IOException
      */
     public FibServer(int port) throws IOException {
+        LOGGER.setLevel(Level.ALL);
         this.serverSocket = new ServerSocket(port);
     }
 
 	public static void main(String[] args) throws IOException {
-		FibServer fibServer = new FibServer(1337);
+        int port;
+        try {
+            port = Integer.valueOf(args[0]);
+
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            port = STANDARD_PORT;
+        }
+        FibServer fibServer = new FibServer(port);
         fibServer.run();
     }
 
@@ -49,27 +67,86 @@ public class FibServer {
      * @throws IOException
      */
 	public void run() throws IOException {
-		System.out.println("Waiting for clients on " + Inet4Address.getLocalHost().getHostAddress() + ":" + this.serverSocket.getLocalPort());
-		this.clientSocket = this.serverSocket.accept();
-		System.out.println("Client " + clientSocket.getInetAddress().toString() + " connected!");
-		this.out = new PrintWriter(this.clientSocket.getOutputStream(), true);
-		this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        LOGGER.info("Waiting for clients on " + Inet4Address.getLocalHost().getHostAddress() + ":" + this.serverSocket.getLocalPort());
+        this.clientSocket = this.serverSocket.accept();
+        LOGGER.info("Client " + clientSocket.getInetAddress().toString() + " connected!");
+        this.out = new PrintWriter(this.clientSocket.getOutputStream(), true);
+        this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 		String inputline;
 		while ((inputline = in.readLine()) != null) {
-			System.out.println("New command received: " + inputline);
-			if (inputline.equals("exit")) {
-				stop();
-				break;
-			}
+            LOGGER.info("New command received: " + inputline);
             try {
-                int input = Integer.valueOf(inputline);
-                int fibo = fib(input);
-                System.out.println("Sending answer: " + fibo);
-                out.println(fibo);
-            } catch (NumberFormatException e) {
-                out.println("Illegal input format. Please try again.");
+                int zahl = checkInput(inputline);
+                int fibo = fib(zahl);
+                sendAnswer(fibo);
+            } catch (IllegalArgumentException e) {
+                sendIllegalInput();
+            } catch (IndexOutOfBoundsException e) {
+                sendIllegalRange();
             }
+
         }
+    }
+
+    /**
+     * Sends an answer to the client.
+     *
+     * @param answer The answer.
+     */
+    private void sendAnswer(String answer) {
+        LOGGER.info("Sending answer: " + answer);
+        out.println(answer);
+    }
+
+    /**
+     * Sends an answer to the client.
+     *
+     * @param answer The answer.
+     */
+    private void sendAnswer(int answer) {
+        sendAnswer(String.valueOf(answer));
+    }
+
+    /**
+     * Sends the errorcode -1 to the client.
+     */
+    private void sendIllegalInput() {
+        LOGGER.info("Illegal input received. Sending -1.");
+        sendAnswer("-1");
+    }
+
+    /**
+     * Sends the errorcode -2 to the client.
+     */
+    private void sendIllegalRange() {
+        LOGGER.info("Illegal range received. Sending -2.");
+        sendAnswer("-2");
+    }
+
+    /**
+     * Checks the inputline, if it matches the requested format.
+     *
+     * @param inputline The inputline from the client.
+     * @return The int from the inputline.
+     * @throws IllegalArgumentException  If the syntax is incorrect.
+     * @throws IndexOutOfBoundsException If the requested fibonacci is >= 100.
+     */
+    private int checkInput(String inputline) throws IllegalArgumentException, IndexOutOfBoundsException {
+        try {
+            if (inputline.toLowerCase().startsWith("berechne")) {
+                String parts[] = inputline.split(" ");
+                int zahl = Integer.valueOf(parts[1]);
+                if (zahl >= 100) {
+                    throw new IndexOutOfBoundsException();
+                }
+                return zahl;
+            } else {
+                throw new IllegalArgumentException();
+            }
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            throw new IllegalArgumentException();
+        }
+
     }
 
     /**
@@ -77,8 +154,8 @@ public class FibServer {
      * @throws IOException
      */
 	public void stop() throws IOException {
-		System.out.println("FibServer shutting down...");
-		serverSocket.close();
+        LOGGER.info("FibServer shutting down...");
+        serverSocket.close();
         clientSocket.close();
     }
 
