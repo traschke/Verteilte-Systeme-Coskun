@@ -1,9 +1,6 @@
 package de.bht.vs.fib.client;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 
 public class Client {
@@ -12,8 +9,8 @@ public class Client {
             args[1] = "5678";
         }
         Socket socket = new Socket(args[0], Integer.parseInt(args[1]));
-        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+        DataInputStream in = new DataInputStream(socket.getInputStream());
         String input;
         BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("$>");
@@ -25,15 +22,16 @@ public class Client {
             }
             if (input.startsWith("berechne")) {
                 input = input.split(" ")[1];
+                System.out.println(input);
                 try {
-                    int inputString = Integer.valueOf(input);
-                    System.out.println("Sending request: " + inputString);
-                    out.println(inputString);
+                    int inputStringAsInt = Integer.valueOf(input);
+                    System.out.println("Sending request: " + inputStringAsInt);
+                    out.writeInt(inputStringAsInt);
                 } catch (NumberFormatException e) {
                     System.out.println("-1\tFehlerhafte Eingabe");
                 }
-                String answer;
-                if ((answer = in.readLine()) != null) {
+                int answer;
+                if ((answer = in.readInt()) > -3) {
                     System.out.println("Server answer: " + answer);
                 }
             }
