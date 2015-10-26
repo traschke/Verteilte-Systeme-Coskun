@@ -133,16 +133,11 @@ public class FibServer {
      */
     private int checkInput(String inputline) throws IllegalArgumentException, IndexOutOfBoundsException {
         try {
-            if (inputline.toLowerCase().startsWith("berechne")) {
-                String parts[] = inputline.split(" ");
-                int zahl = Integer.valueOf(parts[1]);
-                if (zahl >= 100) {
-                    throw new IndexOutOfBoundsException();
-                }
-                return zahl;
-            } else {
-                throw new IllegalArgumentException();
+            int zahl = Integer.valueOf(inputline);
+            if (zahl >= 100) {
+                throw new IndexOutOfBoundsException();
             }
+            return zahl;
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException();
         }
@@ -165,8 +160,8 @@ public class FibServer {
      * @return The Fibonacci-Number at the position i.
      */
 	public int fib (int i) {
-		if (i <= 0)
-			return 0;
+        if (i <= 0)
+            return 0;
 		else if(i==1)
 			return 1;
 		else
