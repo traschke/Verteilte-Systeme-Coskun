@@ -1,9 +1,8 @@
 package de.bht.vs.fib.server;
 
-import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -32,12 +31,12 @@ public class FibServer {
     /**
      * This private variable holds the outStream.
      */
-	private PrintWriter out;
+    private DataOutputStream out;
 
     /**
      * This private variable holds the inputReader.
      */
-	private BufferedReader in;
+    private DataInputStream in;
 
     /**
      * Default Constructor.
@@ -69,11 +68,12 @@ public class FibServer {
 	public void run() throws IOException {
         LOGGER.info("Waiting for clients on " + Inet4Address.getLocalHost().getHostAddress() + ":" + this.serverSocket.getLocalPort());
         this.clientSocket = this.serverSocket.accept();
+
         LOGGER.info("Client " + clientSocket.getInetAddress().toString() + " connected!");
-        this.out = new PrintWriter(this.clientSocket.getOutputStream(), true);
-        this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-		String inputline;
-		while ((inputline = in.readLine()) != null) {
+        this.out = new DataOutputStream(this.clientSocket.getOutputStream());
+        this.in = new DataInputStream(clientSocket.getInputStream());
+        int inputline;
+        while ((inputline = in.readInt()) > -1) {
             LOGGER.info("New command received: " + inputline);
             try {
                 int zahl = checkInput(inputline);
@@ -93,34 +93,25 @@ public class FibServer {
      *
      * @param answer The answer.
      */
-    private void sendAnswer(String answer) {
+    private void sendAnswer(int answer) throws IOException {
         LOGGER.info("Sending answer: " + answer);
-        out.println(answer);
-    }
-
-    /**
-     * Sends an answer to the client.
-     *
-     * @param answer The answer.
-     */
-    private void sendAnswer(int answer) {
-        sendAnswer(String.valueOf(answer));
+        out.writeInt(answer);
     }
 
     /**
      * Sends the errorcode -1 to the client.
      */
-    private void sendIllegalInput() {
+    private void sendIllegalInput() throws IOException {
         LOGGER.info("Illegal input received. Sending -1.");
-        sendAnswer("-1");
+        sendAnswer(-1);
     }
 
     /**
      * Sends the errorcode -2 to the client.
      */
-    private void sendIllegalRange() {
+    private void sendIllegalRange() throws IOException {
         LOGGER.info("Illegal range received. Sending -2.");
-        sendAnswer("-2");
+        sendAnswer(-2);
     }
 
     /**
@@ -131,9 +122,9 @@ public class FibServer {
      * @throws IllegalArgumentException  If the syntax is incorrect.
      * @throws IndexOutOfBoundsException If the requested fibonacci is >= 100.
      */
-    private int checkInput(String inputline) throws IllegalArgumentException, IndexOutOfBoundsException {
+    private int checkInput(int inputline) throws IllegalArgumentException, IndexOutOfBoundsException {
         try {
-            int zahl = Integer.valueOf(inputline);
+            int zahl = inputline;
             if (zahl >= 100) {
                 throw new IndexOutOfBoundsException();
             }
